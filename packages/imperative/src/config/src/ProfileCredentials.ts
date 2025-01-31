@@ -119,6 +119,7 @@ export class ProfileCredentials {
      * @internal
      */
     public isCredentialManagerInAppSettings(): boolean {
+        return false;
         try {
             const fileName = path.join(ImperativeConfig.instance.cliHome, "settings", "imperative.json");
             let settings: any;

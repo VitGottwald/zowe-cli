@@ -16,7 +16,7 @@ import { AbstractSession } from "../session/AbstractSession";
 import * as https from "https";
 import * as http from "http";
 import { readFileSync } from "fs";
-import { ContentEncoding, Headers } from "./Headers";
+import { ContentEncoding, Headers as ZoweHeaders } from "./Headers";
 import { RestConstants } from "./RestConstants";
 import { ImperativeReject } from "../../../interfaces";
 import { IHTTPSOptions } from "./doc/IHTTPSOptions";
@@ -261,145 +261,40 @@ export abstract class AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof AbstractRestClient
      */
-    public request(options: IRestOptions): Promise<string> {
-        return new Promise<string>((resolve: RestClientResolve, reject: ImperativeReject) => {
+    public async request(options: IRestOptions): Promise<string> {
 
-            // save for logging
-            this.mResource = options.resource;
-            this.mRequest = options.request;
-            this.mReqHeaders = options.reqHeaders;
-            this.mWriteData = options.writeData;
-            this.mRequestStream = options.requestStream;
-            this.mResponseStream = options.responseStream;
-            this.mNormalizeRequestNewlines = options.normalizeRequestNewLines;
-            this.mNormalizeResponseNewlines = options.normalizeResponseNewLines;
-            this.mTask = options.task;
+        console.log(`HTTP Request`)
+        console.log(JSON.stringify(options))
 
-            // got a new promise
-            this.mResolve = resolve;
-            this.mReject = reject;
+        const buildOptions = this.buildOptions(options.resource, options.request, options.reqHeaders);
 
-            ImperativeExpect.toBeDefinedAndNonBlank(options.resource, "resource");
-            ImperativeExpect.toBeDefinedAndNonBlank(options.request, "request");
-            ImperativeExpect.toBeEqual(options.requestStream != null && options.writeData != null, false,
-                "You cannot specify both writeData and writeStream");
-            const buildOptions = this.buildOptions(options.resource, options.request, options.reqHeaders);
+        console.log(JSON.stringify(buildOptions))
 
-            /**
-             * Perform the actual http request
-             */
-            let clientRequest: http.ClientRequest;
-            if (this.session.ISession.protocol === SessConstants.HTTPS_PROTOCOL) {
-                clientRequest = https.request(buildOptions, this.requestHandler.bind(this));
-                // try {
-                //     clientRequest = https.request(buildOptions, this.requestHandler.bind(this));
-                // } catch (err) {
-                //     if (err.message === "mac verify failure") {
-                //         throw new ImperativeError({
-                //             msg: "Failed to decrypt PFX file - verify your certificate passphrase is correct.",
-                //             causeErrors: err,
-                //             additionalDetails: err.message,
-                //             stack: err.stack
-                //         });
-                //     } else { throw err; }
-                // }
-            } else if (this.session.ISession.protocol === SessConstants.HTTP_PROTOCOL) {
-                clientRequest = http.request(buildOptions, this.requestHandler.bind(this));
+        const authentication: string = AbstractSession.BASIC_PREFIX + (this.session.ISession.base64EncodedAuth ??
+            AbstractSession.getBase64Auth(this.session.ISession.user, this.session.ISession.password));
+
+        const headers = new Headers()
+        headers.append("x-csrf-zosmf-header", "true")
+        headers.append("Authorization", authentication)
+
+        if (options.reqHeaders && options.reqHeaders.length > 0) {
+            options.reqHeaders.forEach(h => {
+                const keys = Object.keys(h)
+                keys.forEach(k => {
+                    headers.append(k, h[k])
+                })
+            })
+        }
+
+        const url = `https://${buildOptions.hostname}:${buildOptions.port}${buildOptions.path}`
+        const response = await fetch(url,
+            {
+                headers,
+                method: buildOptions.method,
             }
+        );
 
-            /**
-             * For a REST request which includes writing raw data to the http server,
-             * write the data via http request.
-             */
-            if (options.writeData != null) {
-
-                this.log.debug("will write data for request");
-                /**
-                 * If the data is JSON, translate to text before writing
-                 */
-                if (this.mIsJson) {
-                    this.log.debug("writing JSON for request");
-                    this.log.trace("JSON body: %s", JSON.stringify(options.writeData));
-                    clientRequest.write(JSON.stringify(options.writeData));
-                } else {
-                    clientRequest.write(options.writeData);
-                }
-            }
-
-            /**
-             * Invoke any onError method whenever an error occurs on writing
-             */
-            clientRequest.on("error", (errorResponse: any) => {
-                // Handle the HTTP 1.1 Keep-Alive race condition
-                if (errorResponse.code === "ECONNRESET" && clientRequest.reusedSocket) {
-                    this.request(options).then((response: string) => {
-                        resolve(response);
-                    }).catch((err) => {
-                        reject(err);
-                    });
-                } else {
-                    reject(this.populateError({
-                        msg: "Failed to send an HTTP request.",
-                        causeErrors: errorResponse,
-                        source: "client"
-                    }));
-                }
-            });
-
-            if (options.requestStream != null) {
-                // if the user requested streaming write of data to the request,
-                // write the data chunk by chunk to the server
-                let bytesUploaded = 0;
-                let heldByte: string;
-                options.requestStream.on("data", (data: Buffer) => {
-                    this.log.debug("Writing data chunk of length %d from requestStream to clientRequest", data.byteLength);
-                    if (this.mNormalizeRequestNewlines) {
-                        this.log.debug("Normalizing new lines in request chunk to \\n");
-                        let dataString = data.toString();
-                        if (heldByte != null) {
-                            dataString = heldByte + dataString;
-                            heldByte = undefined;
-                        }
-                        if (dataString.charAt(dataString.length - 1) === "\r") {
-                            heldByte = dataString.charAt(dataString.length - 1);
-                            dataString = dataString.slice(0,-1);
-                        }
-                        data = Buffer.from(dataString.replace(/\r?\n/g, "\n"));
-                    }
-                    if (this.mTask != null) {
-                        bytesUploaded += data.byteLength;
-                        this.mTask.statusMessage = TextUtils.formatMessage("Uploading %d B", bytesUploaded);
-                        if (this.mTask.percentComplete < TaskProgress.NINETY_PERCENT) {
-                            // we don't know how far along we are but increment the percentage to
-                            // show we are making progress
-                            this.mTask.percentComplete++;
-                        }
-                    }
-                    clientRequest.write(data);
-                });
-                options.requestStream.on("error", (streamError: any) => {
-                    this.log.error("Error encountered reading requestStream: " + streamError);
-                    reject(this.populateError({
-                        msg: "Error reading requestStream",
-                        causeErrors: streamError,
-                        source: "client"
-                    }));
-                });
-                options.requestStream.on("end", () => {
-                    if (heldByte != null) {
-                        clientRequest.write(Buffer.from(heldByte));
-                        heldByte = undefined;
-                    }
-                    this.log.debug("Finished reading requestStream");
-                    // finish the request
-                    clientRequest.end();
-                });
-            } else {
-                // otherwise we're done with the request
-                clientRequest.end();
-            }
-
-        });
+        return await response.text()
     }
 
     /**
@@ -431,8 +326,8 @@ export abstract class AbstractRestClient {
      * @returns {IImperativeError} processedError - the error with the fields set the way you want them
      */
     protected processError(error: IImperativeError): IImperativeError {
-        this.log.debug("Default stub for processError was called for rest client %s - processError was not overwritten",
-            this.constructor.name);
+        // this.log.debug("Default stub for processError was called for rest client %s - processError was not overwritten",
+            // this.constructor.name);
         return undefined; // do nothing by default
     }
 
@@ -487,7 +382,7 @@ export abstract class AbstractRestClient {
          * Allow our session's defined identity validator run
          */
         if (this.session.ISession.checkServerIdentity) {
-            this.log.trace("Check Server Identity Disabled (Allowing Mismatched Domains)");
+            // this.log.trace("Check Server Identity Disabled (Allowing Mismatched Domains)");
             options.checkServerIdentity = this.session.ISession.checkServerIdentity;
         }
 
@@ -522,7 +417,7 @@ export abstract class AbstractRestClient {
              * clause above to call the new setCertPfxAuth function.
              */
             // else if (this.session.ISession.type === SessConstants.AUTH_TYPE_CERT_PFX) {
-            //     this.log.trace("Using PFX Certificate authentication");
+            //     // this.log.trace("Using PFX Certificate authentication");
             //     try {
             //         options.pfx = readFileSync(this.session.ISession.cert);
             //     } catch (err) {
@@ -552,8 +447,8 @@ export abstract class AbstractRestClient {
 
         const logResource = path.posix.join(path.posix.sep,
             this.session.ISession.basePath == null ? "" : this.session.ISession.basePath, resource);
-        this.log.trace("Rest request: %s %s:%s%s %s", request, this.session.ISession.hostname, this.session.ISession.port,
-            logResource, this.session.ISession.user ? "as user " + this.session.ISession.user : "");
+        // this.log.trace("Rest request: %s %s:%s%s %s", request, this.session.ISession.hostname, this.session.ISession.port,
+            // logResource, this.session.ISession.user ? "as user " + this.session.ISession.user : "");
 
         return options;
     }
@@ -576,8 +471,8 @@ export abstract class AbstractRestClient {
             return false;
         }
 
-        this.log.trace("Using cookie authentication with token %s", this.session.ISession.tokenValue);
-        const headerKeys: string[] = Object.keys(Headers.COOKIE_AUTHORIZATION);
+        // this.log.trace("Using cookie authentication with token %s", this.session.ISession.tokenValue);
+        const headerKeys: string[] = Object.keys(ZoweHeaders.COOKIE_AUTHORIZATION);
         const authentication: string = `${this.session.ISession.tokenType}=${this.session.ISession.tokenValue}`;
         headerKeys.forEach((property) => {
             restOptionsToSet.headers[property] = authentication;
@@ -612,8 +507,8 @@ export abstract class AbstractRestClient {
             return false;
         }
 
-        this.log.trace("Using basic authentication");
-        const headerKeys: string[] = Object.keys(Headers.BASIC_AUTHORIZATION);
+        // this.log.trace("Using basic authentication");
+        const headerKeys: string[] = Object.keys(ZoweHeaders.BASIC_AUTHORIZATION);
         const authentication: string = AbstractSession.BASIC_PREFIX + (this.session.ISession.base64EncodedAuth ??
             AbstractSession.getBase64Auth(this.session.ISession.user, this.session.ISession.password));
         headerKeys.forEach((property) => {
@@ -639,8 +534,8 @@ export abstract class AbstractRestClient {
             return false;
         }
 
-        this.log.trace("Using bearer authentication");
-        const headerKeys: string[] = Object.keys(Headers.BASIC_AUTHORIZATION);
+        // this.log.trace("Using bearer authentication");
+        const headerKeys: string[] = Object.keys(ZoweHeaders.BASIC_AUTHORIZATION);
         const authentication: string = AbstractSession.BEARER_PREFIX + this.session.ISession.tokenValue;
         headerKeys.forEach((property) => {
             restOptionsToSet.headers[property] = authentication;
@@ -661,7 +556,7 @@ export abstract class AbstractRestClient {
         if (!(this.session.ISession.type === SessConstants.AUTH_TYPE_CERT_PEM)) {
             return false;
         }
-        this.log.trace("Using PEM Certificate authentication");
+        // this.log.trace("Using PEM Certificate authentication");
         try {
             restOptionsToSet.cert = readFileSync(this.session.ISession.cert);
             restOptionsToSet.key = readFileSync(this.session.ISession.certKey);
@@ -697,18 +592,18 @@ export abstract class AbstractRestClient {
                 return this.response.headers[key] ?? this.response.headers[key.toLowerCase()];
             };
 
-            const tempLength: number = getHeaderCaseInsensitive(Headers.CONTENT_LENGTH);
+            const tempLength: number = getHeaderCaseInsensitive(ZoweHeaders.CONTENT_LENGTH);
             if (tempLength != null) {
                 this.mContentLength = tempLength;
-                this.log.debug("Content length of response is: " + this.mContentLength);
+                // this.log.debug("Content length of response is: " + this.mContentLength);
             }
 
-            const tempEncoding: string = getHeaderCaseInsensitive(Headers.CONTENT_ENCODING);
-            if (typeof tempEncoding === "string" && Headers.CONTENT_ENCODING_TYPES.find((x) => x === tempEncoding)) {
-                this.log.debug("Content encoding of response is: " + tempEncoding as ContentEncoding);
+            const tempEncoding: string = getHeaderCaseInsensitive(ZoweHeaders.CONTENT_ENCODING);
+            if (typeof tempEncoding === "string" && ZoweHeaders.CONTENT_ENCODING_TYPES.find((x) => x === tempEncoding)) {
+                // this.log.debug("Content encoding of response is: " + tempEncoding as ContentEncoding);
                 if (this.mDecode) {
                     this.mContentEncoding = tempEncoding as ContentEncoding;
-                    this.log.debug("Using encoding: " + this.mContentEncoding);
+                    // this.log.debug("Using encoding: " + this.mContentEncoding);
                 }
             }
         }
@@ -722,7 +617,7 @@ export abstract class AbstractRestClient {
                 }));
             });
             if (this.mContentEncoding != null) {
-                this.log.debug("Adding decompression transform to response stream");
+                // this.log.debug("Adding decompression transform to response stream");
                 try {
                     this.mResponseStream = CompressionUtils.decompressStream(this.mResponseStream, this.mContentEncoding,
                         this.mNormalizeResponseNewlines);
@@ -756,7 +651,7 @@ export abstract class AbstractRestClient {
      * @memberof AbstractRestClient
      */
     private onData(respData: Buffer): void {
-        this.log.trace("Data chunk received...");
+        // this.log.trace("Data chunk received...");
         this.mBytesReceived += respData.byteLength;
         if (this.requestFailure || this.mResponseStream == null) {
             // buffer the data if we are not streaming
@@ -764,9 +659,9 @@ export abstract class AbstractRestClient {
             // relies on any JSON error to be in the this.dataString field
             this.mChunks.push(respData);
         } else {
-            this.log.debug("Streaming data chunk of length " + respData.length + " to response stream");
+            // this.log.debug("Streaming data chunk of length " + respData.length + " to response stream");
             if (this.mNormalizeResponseNewlines && this.mContentEncoding == null) {
-                this.log.debug("Normalizing new lines in data chunk to operating system appropriate line endings");
+                // this.log.debug("Normalizing new lines in data chunk to operating system appropriate line endings");
                 respData = IO.processNewlines(respData, this.lastByteReceived);
             }
             if (this.mTask != null) {
@@ -799,7 +694,7 @@ export abstract class AbstractRestClient {
      * @memberof AbstractRestClient
      */
     private onEnd(): void {
-        this.log.debug("onEnd() called for rest client %s", this.constructor.name);
+        // this.log.debug("onEnd() called for rest client %s", this.constructor.name);
 
         // Concatenate the chunks, then toss the pieces
         this.mData = Buffer.concat(this.mChunks);
@@ -810,7 +705,7 @@ export abstract class AbstractRestClient {
             this.mTask.stageName = TaskStage.COMPLETE;
         }
         if (this.mContentEncoding != null && this.mData.length > 0) {
-            this.log.debug("Decompressing encoded response");
+            // this.log.debug("Decompressing encoded response");
             try {
                 this.mData = CompressionUtils.decompressBuffer(this.mData, this.mContentEncoding);
             } catch (err) {
@@ -832,7 +727,7 @@ export abstract class AbstractRestClient {
             }
         };
         if (this.mResponseStream != null) {
-            this.log.debug("Ending response stream");
+            // this.log.debug("Ending response stream");
             this.mResponseStream.end(requestEnd);
         } else {
             requestEnd();
@@ -871,7 +766,7 @@ export abstract class AbstractRestClient {
             headerDetails = JSON.stringify(this.mReqHeaders);
             payloadDetails = inspect(this.mWriteData, { depth: null });
         } catch (stringifyError) {
-            this.log.error("Error encountered trying to parse details for REST request error:\n %s", inspect(stringifyError, { depth: null }));
+            // this.log.error("Error encountered trying to parse details for REST request error:\n %s", inspect(stringifyError, { depth: null }));
         }
 
         // Populate the "relevant" fields - caller will have the session, so
@@ -920,7 +815,7 @@ export abstract class AbstractRestClient {
         // TODO - error object, but it is left for compatibility.
         const processedError = this.processError(error);
         if (processedError != null) {
-            this.log.debug("Error was processed by overridden processError method in RestClient %s", this.constructor.name);
+            // this.log.debug("Error was processed by overridden processError method in RestClient %s", this.constructor.name);
             finalError = { ...finalError, ...processedError };
         }
 
@@ -937,8 +832,8 @@ export abstract class AbstractRestClient {
      * @memberof AbstractRestClient
      */
     private appendInputHeaders(options: IHTTPSOptions, reqHeaders?: any[]): IHTTPSOptions {
-        this.log.trace("appendInputHeaders called with options on rest client %s",
-            JSON.stringify(options), this.constructor.name);
+        // this.log.trace("appendInputHeaders called with options on rest client %s",
+            // JSON.stringify(options), this.constructor.name);
         if (reqHeaders && reqHeaders.length > 0) {
             reqHeaders.forEach((reqHeader: any) => {
                 const requestHeaderKeys: string[] = Object.keys(reqHeader);
@@ -957,12 +852,12 @@ export abstract class AbstractRestClient {
      * @memberof AbstractRestClient
      */
     private setTransferFlags(headers: http.OutgoingHttpHeaders) {
-        if (headers[Headers.CONTENT_TYPE] != null) {
-            const contentType = headers[Headers.CONTENT_TYPE];
-            if (contentType === Headers.APPLICATION_JSON[Headers.CONTENT_TYPE]) {
+        if (headers[ZoweHeaders.CONTENT_TYPE] != null) {
+            const contentType = headers[ZoweHeaders.CONTENT_TYPE];
+            if (contentType === ZoweHeaders.APPLICATION_JSON[ZoweHeaders.CONTENT_TYPE]) {
                 this.mIsJson = true;
-            } else if (contentType === Headers.OCTET_STREAM[Headers.CONTENT_TYPE]) {
-                this.log.debug("Found octet-stream header in request. Will write in binary mode");
+            } else if (contentType === ZoweHeaders.OCTET_STREAM[ZoweHeaders.CONTENT_TYPE]) {
+                // this.log.debug("Found octet-stream header in request. Will write in binary mode");
             }
         }
     }
@@ -1042,6 +937,6 @@ export abstract class AbstractRestClient {
      * @memberof AbstractRestClient
      */
     get log(): Logger {
-        return this.mLogger;
+        return console as any;
     }
 }
