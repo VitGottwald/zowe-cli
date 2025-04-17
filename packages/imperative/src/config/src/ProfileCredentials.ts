@@ -1,19 +1,23 @@
 /*
-* This program and the accompanying materials are made available under the terms of the
-* Eclipse Public License v2.0 which accompanies this distribution, and is available at
-* https://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Copyright Contributors to the Zowe Project.
-*
-*/
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Copyright Contributors to the Zowe Project.
+ *
+ */
 
 import * as fs from "fs";
 import * as path from "path";
 
 import { ImperativeError } from "../../error";
-import { CredentialManagerFactory, DefaultCredentialManager, ICredentialManagerInit } from "../../security";
+import {
+    CredentialManagerFactory,
+    DefaultCredentialManager,
+    ICredentialManagerInit,
+} from "../../security";
 import { ImperativeConfig } from "../../utilities";
 import { IProfOpts } from "./doc/IProfOpts";
 import { ProfileInfo } from "./ProfileInfo";
@@ -22,8 +26,14 @@ export class ProfileCredentials {
     private mSecured: boolean;
     private mCredMgrOverride?: ICredentialManagerInit;
 
-    constructor(private mProfileInfo: ProfileInfo, opts?: IProfOpts | (() => NodeModule)) {
-        this.mCredMgrOverride = typeof opts === "function" ? ProfileCredentials.defaultCredMgrWithKeytar(opts) : opts?.credMgrOverride;
+    constructor(
+        private mProfileInfo: ProfileInfo,
+        opts?: IProfOpts | (() => NodeModule)
+    ) {
+        this.mCredMgrOverride =
+            typeof opts === "function"
+                ? ProfileCredentials.defaultCredMgrWithKeytar(opts)
+                : opts?.credMgrOverride;
     }
 
     /**
@@ -34,7 +44,9 @@ export class ProfileCredentials {
      * @param requireKeytar Callback to require Keytar module for managing secure credentials
      * @returns Credential manager settings with Keytar module overridden
      */
-    public static defaultCredMgrWithKeytar(requireKeytar: () => NodeModule): ICredentialManagerInit {
+    public static defaultCredMgrWithKeytar(
+        requireKeytar: () => NodeModule
+    ): ICredentialManagerInit {
         return {
             service: null,
             Manager: class extends DefaultCredentialManager {
@@ -44,11 +56,11 @@ export class ProfileCredentials {
                     } catch (error) {
                         throw new ImperativeError({
                             msg: `Failed to load Keytar module: ${error.message}`,
-                            causeErrors: error
+                            causeErrors: error,
                         });
                     }
                 }
-            }
+            },
         };
     }
 
@@ -59,8 +71,7 @@ export class ProfileCredentials {
      * settings.json file.
      */
     public get isSecured(): boolean {
-        this.mSecured = this.isTeamConfigSecure() || this.isCredentialManagerInAppSettings();
-        return this.mSecured;
+        return false;
     }
 
     /**
@@ -71,7 +82,9 @@ export class ProfileCredentials {
      */
     public async loadManager(): Promise<void> {
         if (!(this.mSecured ?? this.isSecured)) {
-            throw new ImperativeError({ msg: "Secure credential storage is not enabled" });
+            throw new ImperativeError({
+                msg: "Secure credential storage is not enabled",
+            });
         }
 
         await this.activateCredMgrOverride();
@@ -81,7 +94,7 @@ export class ProfileCredentials {
             },
             save: (key: string, value: any): Promise<void> => {
                 return CredentialManagerFactory.manager.save(key, value);
-            }
+            },
         });
     }
 
@@ -94,12 +107,17 @@ export class ProfileCredentials {
             try {
                 // TODO? Make CredentialManagerFactory.initialize params optional
                 // see https://github.com/zowe/imperative/issues/545
-                await CredentialManagerFactory.initialize({ service: null, ...this.mCredMgrOverride || {} });
-            } catch (error) {
-                throw error instanceof ImperativeError ? error : new ImperativeError({
-                    msg: `Failed to load CredentialManager class: ${error.message}`,
-                    causeErrors: error
+                await CredentialManagerFactory.initialize({
+                    service: null,
+                    ...(this.mCredMgrOverride || {}),
                 });
+            } catch (error) {
+                throw error instanceof ImperativeError
+                    ? error
+                    : new ImperativeError({
+                          msg: `Failed to load CredentialManager class: ${error.message}`,
+                          causeErrors: error,
+                      });
             }
         }
     }
@@ -109,7 +127,11 @@ export class ProfileCredentials {
      * @returns False if not using teamConfig or there are no secure fields
      */
     private isTeamConfigSecure(): boolean {
-        if (this.mProfileInfo.getTeamConfig().api.secure.secureFields().length === 0) return false;
+        if (
+            this.mProfileInfo.getTeamConfig().api.secure.secureFields()
+                .length === 0
+        )
+            return false;
         return true;
     }
 
@@ -121,18 +143,25 @@ export class ProfileCredentials {
     public isCredentialManagerInAppSettings(): boolean {
         return false;
         try {
-            const fileName = path.join(ImperativeConfig.instance.cliHome, "settings", "imperative.json");
+            const fileName = path.join(
+                ImperativeConfig.instance.cliHome,
+                "settings",
+                "imperative.json"
+            );
             let settings: any;
             if (fs.existsSync(fileName)) {
                 settings = JSON.parse(fs.readFileSync(fileName, "utf-8"));
             }
             const value1 = settings?.overrides.CredentialManager;
             const value2 = settings?.overrides["credential-manager"];
-            return typeof value1 === "string" && value1.length > 0 || typeof value2 === "string" && value2.length > 0;
+            return (
+                (typeof value1 === "string" && value1.length > 0) ||
+                (typeof value2 === "string" && value2.length > 0)
+            );
         } catch (error) {
             throw new ImperativeError({
                 msg: "Unable to read Imperative settings file",
-                causeErrors: error
+                causeErrors: error,
             });
         }
     }

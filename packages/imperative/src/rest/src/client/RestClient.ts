@@ -1,13 +1,13 @@
 /*
-* This program and the accompanying materials are made available under the terms of the
-* Eclipse Public License v2.0 which accompanies this distribution, and is available at
-* https://www.eclipse.org/legal/epl-v20.html
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Copyright Contributors to the Zowe Project.
-*
-*/
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-v20.html
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Copyright Contributors to the Zowe Project.
+ *
+ */
 
 import { AbstractSession } from "../session/AbstractSession";
 import { RestConstants } from "./RestConstants";
@@ -29,7 +29,6 @@ import { IRestOptions } from "./doc/IRestOptions";
  * @extends {AbstractRestClient}
  */
 export class RestClient extends AbstractRestClient {
-
     /**
      * Wrap get for common error handling and supporting generic JSON types
      * @static
@@ -42,10 +41,16 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async getExpectJSON<T extends object>(session: AbstractSession, resource: string,
-        reqHeaders: any[] = []): Promise<T> {
+    public static async getExpectJSON<T extends object>(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<T> {
         const data = await this.getExpectString(session, resource, reqHeaders);
-        return JSONUtils.parse<T>(data, "The get request appeared to succeed, but the response was not in the expected format");
+        return JSONUtils.parse<T>(
+            data,
+            "The get request appeared to succeed, but the response was not in the expected format"
+        );
     }
 
     /**
@@ -61,10 +66,22 @@ export class RestClient extends AbstractRestClient {
      *                                   or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async putExpectJSON<T extends object>(session: AbstractSession, resource: string,
-        reqHeaders: any[] = [], payload: any): Promise<T> {
-        const data = await this.putExpectString(session, resource, reqHeaders, payload);
-        return JSONUtils.parse<T>(data, "The put request appeared to succeed, but the response was not in the expected format");
+    public static async putExpectJSON<T extends object>(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        payload: any
+    ): Promise<T> {
+        const data = await this.putExpectString(
+            session,
+            resource,
+            reqHeaders,
+            payload
+        );
+        return JSONUtils.parse<T>(
+            data,
+            "The put request appeared to succeed, but the response was not in the expected format"
+        );
     }
 
     /**
@@ -80,10 +97,22 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async postExpectJSON<T extends object>(session: AbstractSession, resource: string,
-        reqHeaders: any[] = [], payload?: any): Promise<T> {
-        const data = await this.postExpectString(session, resource, reqHeaders, payload);
-        return JSONUtils.parse<T>(data, "The post request appeared to succeed, but the response was not in the expected format");
+    public static async postExpectJSON<T extends object>(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        payload?: any
+    ): Promise<T> {
+        const data = await this.postExpectString(
+            session,
+            resource,
+            reqHeaders,
+            payload
+        );
+        return JSONUtils.parse<T>(
+            data,
+            "The post request appeared to succeed, but the response was not in the expected format"
+        );
     }
 
     /**
@@ -98,9 +127,20 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async deleteExpectJSON<T extends object>(session: AbstractSession, resource: string, reqHeaders: any[] = []): Promise<T> {
-        const data = await this.deleteExpectString(session, resource, reqHeaders);
-        return JSONUtils.parse<T>(data, "The delete request appeared to succeed, but the response was not in the expected format");
+    public static async deleteExpectJSON<T extends object>(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<T> {
+        const data = await this.deleteExpectString(
+            session,
+            resource,
+            reqHeaders
+        );
+        return JSONUtils.parse<T>(
+            data,
+            "The delete request appeared to succeed, but the response was not in the expected format"
+        );
     }
 
     /**
@@ -114,9 +154,13 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async getExpectBuffer(session: AbstractSession, resource: string, reqHeaders: any[] = []): Promise<Buffer> {
+    public static async getExpectBuffer(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<Buffer> {
         const client = new this(session);
-        await client.request({resource, request:HTTP_VERB.GET, reqHeaders});
+        await client.request({ resource, request: HTTP_VERB.GET, reqHeaders });
         return client.data;
     }
 
@@ -132,9 +176,19 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async putExpectBuffer(session: AbstractSession, resource: string, reqHeaders: any[] = [], data: any): Promise<Buffer> {
+    public static async putExpectBuffer(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        data: any
+    ): Promise<Buffer> {
         const client = new this(session);
-        await client.request({resource, request:HTTP_VERB.PUT, reqHeaders, writeData:data});
+        await client.request({
+            resource,
+            request: HTTP_VERB.PUT,
+            reqHeaders,
+            writeData: data,
+        });
         return client.data;
     }
 
@@ -150,9 +204,19 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async postExpectBuffer(session: AbstractSession, resource: string, reqHeaders: any[] = [], data?: any): Promise<Buffer> {
+    public static async postExpectBuffer(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        data?: any
+    ): Promise<Buffer> {
         const client = new this(session);
-        await client.request({resource, request:HTTP_VERB.POST, reqHeaders, writeData:data});
+        await client.request({
+            resource,
+            request: HTTP_VERB.POST,
+            reqHeaders,
+            writeData: data,
+        });
         return client.data;
     }
 
@@ -167,9 +231,17 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async deleteExpectBuffer(session: AbstractSession, resource: string, reqHeaders: any[] = []): Promise<Buffer> {
+    public static async deleteExpectBuffer(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<Buffer> {
         const client = new this(session);
-        await client.request({resource, request:HTTP_VERB.DELETE, reqHeaders});
+        await client.request({
+            resource,
+            request: HTTP_VERB.DELETE,
+            reqHeaders,
+        });
         return client.data;
     }
 
@@ -184,8 +256,16 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static getExpectString(session: AbstractSession, resource: string, reqHeaders: any[] = []): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.GET, reqHeaders});
+    public static getExpectString(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.GET,
+            reqHeaders,
+        });
     }
 
     /**
@@ -200,8 +280,18 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static putExpectString(session: AbstractSession, resource: string, reqHeaders: any[] = [], data: any): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.PUT, reqHeaders, writeData:data});
+    public static putExpectString(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        data: any
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.PUT,
+            reqHeaders,
+            writeData: data,
+        });
     }
 
     /**
@@ -216,8 +306,18 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static postExpectString(session: AbstractSession, resource: string, reqHeaders: any[] = [], data?: any): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.POST, reqHeaders, writeData:data});
+    public static postExpectString(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        data?: any
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.POST,
+            reqHeaders,
+            writeData: data,
+        });
     }
 
     /**
@@ -231,8 +331,16 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static deleteExpectString(session: AbstractSession, resource: string, reqHeaders: any[] = []): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.DELETE, reqHeaders});
+    public static deleteExpectString(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = []
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.DELETE,
+            reqHeaders,
+        });
     }
 
     /**
@@ -250,12 +358,22 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static getStreamed(session: AbstractSession, resource: string, reqHeaders: any[] = [],
+    public static getStreamed(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
         responseStream: Writable,
         normalizeResponseNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.GET, reqHeaders, responseStream,
-            normalizeResponseNewLines, task});
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.GET,
+            reqHeaders,
+            responseStream,
+            normalizeResponseNewLines,
+            task,
+        });
     }
 
     /**
@@ -276,12 +394,26 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static putStreamed(session: AbstractSession, resource: string, reqHeaders: any[] = [],
-        responseStream: Writable, requestStream: Readable,
-        normalizeResponseNewLines?: boolean, normalizeRequestNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.PUT, reqHeaders, responseStream, requestStream,
-            normalizeResponseNewLines, normalizeRequestNewLines, task});
+    public static putStreamed(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        responseStream: Writable,
+        requestStream: Readable,
+        normalizeResponseNewLines?: boolean,
+        normalizeRequestNewLines?: boolean,
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.PUT,
+            reqHeaders,
+            responseStream,
+            requestStream,
+            normalizeResponseNewLines,
+            normalizeRequestNewLines,
+            task,
+        });
     }
 
     /**
@@ -299,12 +431,22 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static putStreamedRequestOnly(session: AbstractSession, resource: string, reqHeaders: any[] = [],
+    public static putStreamedRequestOnly(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
         requestStream: Readable,
         normalizeRequestNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.PUT, reqHeaders, requestStream,
-            normalizeRequestNewLines, task});
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.PUT,
+            reqHeaders,
+            requestStream,
+            normalizeRequestNewLines,
+            task,
+        });
     }
 
     /**
@@ -325,12 +467,26 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static postStreamed(session: AbstractSession, resource: string, reqHeaders: any[] = [],
-        responseStream: Writable, requestStream: Readable,
-        normalizeResponseNewLines?: boolean, normalizeRequestNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.POST, reqHeaders, responseStream, requestStream,
-            normalizeResponseNewLines, normalizeRequestNewLines, task});
+    public static postStreamed(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        responseStream: Writable,
+        requestStream: Readable,
+        normalizeResponseNewLines?: boolean,
+        normalizeRequestNewLines?: boolean,
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.POST,
+            reqHeaders,
+            responseStream,
+            requestStream,
+            normalizeResponseNewLines,
+            normalizeRequestNewLines,
+            task,
+        });
     }
 
     /**
@@ -348,11 +504,22 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static postStreamedRequestOnly(session: AbstractSession, resource: string, reqHeaders: any[] = [],
-        requestStream: Readable, normalizeRequestNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.POST, reqHeaders, requestStream,
-            normalizeRequestNewLines, task});
+    public static postStreamedRequestOnly(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        requestStream: Readable,
+        normalizeRequestNewLines?: boolean,
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.POST,
+            reqHeaders,
+            requestStream,
+            normalizeRequestNewLines,
+            task,
+        });
     }
 
     /**
@@ -370,11 +537,22 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static deleteStreamed(session: AbstractSession, resource: string, reqHeaders: any[] = [], responseStream: Writable,
+    public static deleteStreamed(
+        session: AbstractSession,
+        resource: string,
+        reqHeaders: any[] = [],
+        responseStream: Writable,
         normalizeResponseNewLines?: boolean,
-        task?: ITaskWithStatus): Promise<string> {
-        return new this(session).request({resource, request:HTTP_VERB.DELETE, reqHeaders,
-            responseStream, normalizeResponseNewLines, task});
+        task?: ITaskWithStatus
+    ): Promise<string> {
+        return new this(session).request({
+            resource,
+            request: HTTP_VERB.DELETE,
+            reqHeaders,
+            responseStream,
+            normalizeResponseNewLines,
+            task,
+        });
     }
 
     /**
@@ -387,23 +565,27 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async getExpectFullResponse(session: AbstractSession,
-        options: IOptionsFullResponse): Promise<IRestClientResponse> {
-        const  requestOptions: IRestOptions = {
-            resource : options.resource,
-            request : HTTP_VERB.GET,
-            reqHeaders : options.reqHeaders,
-            writeData : options.writeData,
-            responseStream : options.responseStream,
-            requestStream : options.requestStream,
-            normalizeResponseNewLines : options.normalizeResponseNewLines,
-            normalizeRequestNewLines : options.normalizeRequestNewLines,
-            task : options.task,
+    public static async getExpectFullResponse(
+        session: AbstractSession,
+        options: IOptionsFullResponse
+    ): Promise<IRestClientResponse> {
+        const requestOptions: IRestOptions = {
+            resource: options.resource,
+            request: HTTP_VERB.GET,
+            reqHeaders: options.reqHeaders,
+            writeData: options.writeData,
+            responseStream: options.responseStream,
+            requestStream: options.requestStream,
+            normalizeResponseNewLines: options.normalizeResponseNewLines,
+            normalizeRequestNewLines: options.normalizeRequestNewLines,
+            task: options.task,
         };
 
         const client = new this(session);
-        await client.request(requestOptions);
-        return this.extractExpectedData(client, options.dataToReturn);
+        const data = await client.request(requestOptions);
+        const result = this.extractExpectedData(client, options.dataToReturn);
+        result.data = Buffer.from(data);
+        return result;
     }
 
     /**
@@ -416,12 +598,14 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async putExpectFullResponse(session: AbstractSession,
-        options: IOptionsFullResponse): Promise<IRestClientResponse> {
-        const  requestOptions: IRestOptions = {
-            resource : options.resource,
-            request : HTTP_VERB.PUT,
-            reqHeaders : options.reqHeaders,
+    public static async putExpectFullResponse(
+        session: AbstractSession,
+        options: IOptionsFullResponse
+    ): Promise<IRestClientResponse> {
+        const requestOptions: IRestOptions = {
+            resource: options.resource,
+            request: HTTP_VERB.PUT,
+            reqHeaders: options.reqHeaders,
             writeData: options.writeData,
             responseStream: options.responseStream,
             requestStream: options.requestStream,
@@ -445,12 +629,14 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async deleteExpectFullResponse(session: AbstractSession,
-        options: IOptionsFullResponse): Promise<IRestClientResponse> {
-        const  requestOptions: IRestOptions = {
-            resource : options.resource,
-            request : HTTP_VERB.DELETE,
-            reqHeaders : options.reqHeaders,
+    public static async deleteExpectFullResponse(
+        session: AbstractSession,
+        options: IOptionsFullResponse
+    ): Promise<IRestClientResponse> {
+        const requestOptions: IRestOptions = {
+            resource: options.resource,
+            request: HTTP_VERB.DELETE,
+            reqHeaders: options.reqHeaders,
             writeData: options.writeData,
             responseStream: options.responseStream,
             requestStream: options.requestStream,
@@ -474,12 +660,14 @@ export class RestClient extends AbstractRestClient {
      *          or other connection problems occur (e.g. connection refused)
      * @memberof RestClient
      */
-    public static async postExpectFullResponse(session: AbstractSession,
-        options: IOptionsFullResponse): Promise<IRestClientResponse> {
-        const  requestOptions: IRestOptions = {
-            resource : options.resource,
-            request : HTTP_VERB.POST,
-            reqHeaders : options.reqHeaders,
+    public static async postExpectFullResponse(
+        session: AbstractSession,
+        options: IOptionsFullResponse
+    ): Promise<IRestClientResponse> {
+        const requestOptions: IRestOptions = {
+            resource: options.resource,
+            request: HTTP_VERB.POST,
+            reqHeaders: options.reqHeaders,
             writeData: options.writeData,
             responseStream: options.responseStream,
             requestStream: options.requestStream,
@@ -513,7 +701,8 @@ export class RestClient extends AbstractRestClient {
      * @returns {IRestClientResponse} - trimmed or full response object based on the list provided
      * @memberof RestClient
      */
-    private static extractExpectedData(client: AbstractRestClient,
+    private static extractExpectedData(
+        client: AbstractRestClient,
         toReturn: CLIENT_PROPERTY[] = Object.values(CLIENT_PROPERTY)
     ): IRestClientResponse {
         const tailoredResult: any = {};
