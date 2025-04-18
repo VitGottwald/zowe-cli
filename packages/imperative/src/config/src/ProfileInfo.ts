@@ -1045,14 +1045,7 @@ export class ProfileInfo {
         let lastSchema: { path: string, json: any } = { path: null, json: null };
         for (const layer of this.getTeamConfig().mLayers) {
             if (layer.properties.$schema == null) continue;
-            const schemaUri = new url.URL(layer.properties.$schema, url.pathToFileURL(layer.path));
-            if (schemaUri.protocol !== "file:") {
-                throw new ProfInfoErr({
-                    errorCode: ProfInfoErr.CANT_GET_SCHEMA_URL,
-                    msg: `Failed to load schema for config file ${layer.path}: web URLs are not supported by ProfileInfo API`
-                });
-            }
-            const schemaPath = url.fileURLToPath(schemaUri);
+            const schemaPath = "/.zowe/zowe.schema.json";
             if (fs.existsSync(schemaPath)) {
                 try {
                     let schemaJson;
