@@ -11,7 +11,7 @@
 
 import { ICommandHandler, IHandlerParameters, IHandlerResponseConsoleApi } from "../../../../../cmd";
 import {
-    ConvertMsg, ConvertMsgFmt, ConvertV1Profiles, IConvertV1ProfOpts, IConvertV1ProfResult
+    ConvertMsg, ConvertMsgFmt, IConvertV1ProfOpts, IConvertV1ProfResult
 } from "../../../../../config";
 import { uninstall as uninstallPlugin } from "../../../plugins/utilities/npm-interface";
 import { TextUtils } from "../../../../../utilities";
@@ -27,61 +27,7 @@ export default class ConvertProfilesHandler implements ICommandHandler {
      * @throws {ImperativeError}
      */
     public async process(params: IHandlerParameters): Promise<void> {
-        const convertOpts: IConvertV1ProfOpts = {
-            deleteV1Profs: false
-        };
-
-        if (params.arguments?.delete) {
-            convertOpts.deleteV1Profs = true;
-            if (params.arguments.prompt == null || params.arguments.prompt === true) {
-                params.response.console.log(
-                    "If you confirm the deletion of V1 profiles, they are deleted from disk after\n" +
-                    "a successful conversion. Otherwise, they remain but are no longer used.\n" +
-                    "You can also delete your V1 profiles later.\n"
-                );
-                const answer = await params.response.console.prompt("Do you want to delete your V1 profiles now [y/N]: ");
-                if (answer.charAt(0).toLowerCase() !== "y") {
-                    convertOpts.deleteV1Profs = false;
-                }
-            }
-        }
-
-        const convertResult: IConvertV1ProfResult = await ConvertV1Profiles.convert(convertOpts);
-
-        /* Uninstall the V1 SCS plugin.
-         *
-         * The uninstall cannot be done in ConvertV1Profiles.convert because circular
-         * dependencies cause problems in other unrelated modules that import from
-         * "@zowe/imperative".
-         *
-         * Add our messages to those already in the response object so that we can
-         * display all messages together later.
-         */
-        if (convertResult.v1ScsPluginName) {
-            try {
-                uninstallPlugin(convertResult.v1ScsPluginName);
-                const newMsg = new ConvertMsg(
-                    ConvertMsgFmt.REPORT_LINE | ConvertMsgFmt.PARAGRAPH,
-                    `Successfully uninstalled plug-in ${convertResult.v1ScsPluginName}.`
-                );
-                convertResult.msgs.push(newMsg);
-            } catch (error) {
-                let newMsg = new ConvertMsg(
-                    ConvertMsgFmt.ERROR_LINE | ConvertMsgFmt.PARAGRAPH,
-                    `Failed to uninstall plug-in ${convertResult.v1ScsPluginName}.`
-                );
-                convertResult.msgs.push(newMsg);
-
-                newMsg = new ConvertMsg(
-                    ConvertMsgFmt.ERROR_LINE | ConvertMsgFmt.INDENT, error.message
-                );
-                convertResult.msgs.push(newMsg);
-            }
-        }
-
-        // show all report messages followed by error messages
-        this.showMsgsByType(convertResult.msgs, ConvertMsgFmt.REPORT_LINE, params.response.console);
-        this.showMsgsByType(convertResult.msgs, ConvertMsgFmt.ERROR_LINE, params.response.console);
+        throw "Conversion of profiles no longer supporterd";
     }
 
     /**

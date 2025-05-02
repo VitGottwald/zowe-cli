@@ -15,7 +15,6 @@ export * from "./src/ConfigBuilder";
 export * from "./src/ConfigConstants";
 export * from "./src/ConfigSchema";
 export * from "./src/ConfigUtils";
-export * from "./src/ConvertV1Profiles";
 export * from "./src/ProfileCredentials";
 export * from "./src/ProfileInfo";
 export * from "./src/ProfInfoErr";

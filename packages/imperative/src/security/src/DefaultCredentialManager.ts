@@ -13,8 +13,6 @@ import { AbstractCredentialManager, SecureCredential } from "./abstract/Abstract
 import { ImperativeError } from "../../error";
 import { Logger } from "../../logger";
 
-import type { keyring as keytar } from "@zowe/secrets-for-zowe-sdk"; // Used for typing purposes only
-
 /**
  * Default Credential Manager is our implementation of the Imperative Credential Manager. This manager invokes methods
  * created by the keytar utility (https://www.npmjs.com/package/keytar) to access the secure credential vault on the
@@ -52,7 +50,6 @@ export class DefaultCredentialManager extends AbstractCredentialManager {
     /**
      * Reference to the lazily loaded keytar module.
      */
-    private keytar: typeof keytar;
 
     /**
      * Errors that occurred while loading keytar will be stored in here.
@@ -115,25 +112,12 @@ export class DefaultCredentialManager extends AbstractCredentialManager {
      * @returns {Promise<void>} A promise that the function has completed.
      */
     public async initialize(): Promise<void> {
-        try {
-            // Imperative overrides the value of require.main.filename to point to
-            // our calling CLI. Since our caller must supply keytar, we search for keytar
-            // within our caller's path.
-            const requireOpts: any = {};
-            if (require.main?.filename != null) {
-                requireOpts.paths = [require.main.filename, ...require.resolve.paths("@zowe/secrets-for-zowe-sdk")];
-            }
-            // use helper function for require.resolve so it can be mocked in jest tests
-            const keytarPath = require.resolve("@zowe/secrets-for-zowe-sdk", requireOpts);
-            Logger.getImperativeLogger().debug("Loading Keytar module from", keytarPath);
-            this.keytar = (await import(keytarPath)).keyring;
-        } catch (error) {
-            this.loadError = new ImperativeError({
-                msg: `Failed to load Keytar module: ${error.message}`,
-                causeErrors: error
-            });
-            Logger.getImperativeLogger().debug("Failed to load Keytar module:\n", error.stack);
-        }
+        const error = new Error('Keytar not supported');
+        this.loadError = new ImperativeError({
+            msg: `Failed to load Keytar module`,
+            causeErrors: error
+        });
+        Logger.getImperativeLogger().debug("Failed to load Keytar module:\n", error.stack);
     }
 
     protected get possibleSolutions(): string[] {
@@ -239,14 +223,12 @@ export class DefaultCredentialManager extends AbstractCredentialManager {
      * @throws {@link ImperativeError} when keytar is null or undefined.
      */
     private checkForKeytar(): void {
-        if (this.keytar == null) {
-            if (this.loadError == null) {
-                throw new ImperativeError({
-                    msg: "Keytar was not properly loaded due to an unknown cause."
-                });
-            } else {
-                throw this.loadError;
-            }
+        if (this.loadError == null) {
+            throw new ImperativeError({
+                msg: "Keytar was not properly loaded due to an unknown cause."
+            });
+        } else {
+            throw this.loadError;
         }
     }
 
@@ -260,27 +242,7 @@ export class DefaultCredentialManager extends AbstractCredentialManager {
      */
     private async getCredentialsHelper(service: string, account: string): Promise<SecureCredential> {
         // Try to load single-field value from vault
-        let value = await this.keytar.getPassword(service, account);
-
-        // If not found, try to load multiple-field value on Windows
-        if (value == null && process.platform === "win32") {
-            let index = 1;
-            // Load multiple fields from vault and concat them
-            do {
-                const tempValue = await this.keytar.getPassword(service, `${account}-${index}`);
-                if (tempValue != null) {
-                    value = (value || "") + tempValue;
-                }
-                index++;
-                // Loop until we've finished reading null-terminated value
-            } while (value != null && !value.endsWith('\0'));
-            // Strip off trailing null char
-            if (value != null) {
-                value = value.replace(/\0$/, "");
-            }
-        }
-
-        return value;
+        throw new Error("Keytar not supported");
     }
 
     /**
@@ -292,45 +254,11 @@ export class DefaultCredentialManager extends AbstractCredentialManager {
      * @param value The string credential.
      */
     private async setCredentialsHelper(service: string, account: string, value: SecureCredential): Promise<void> {
-        // On Windows, save value across multiple fields if needed
-        if (process.platform === "win32" && value.length > this.WIN32_CRED_MAX_STRING_LENGTH) {
-            // First delete any fields previously used to store this value
-            await this.keytar.deletePassword(service, account);
-            value += '\0';
-            let index = 1;
-            while (value.length > 0) {
-                const tempValue = value.slice(0, this.WIN32_CRED_MAX_STRING_LENGTH);
-                await this.keytar.setPassword(service, `${account}-${index}`, tempValue);
-                value = value.slice(this.WIN32_CRED_MAX_STRING_LENGTH);
-                index++;
-            }
-        } else {
-            // Fall back to simple storage of single-field value
-            await this.keytar.setPassword(service, account, value);
-        }
+        throw new Error("Keytar not supported");
     }
 
     private async deleteCredentialsHelper(account: string, keepCurrentSvc?: boolean): Promise<boolean> {
-        let wasDeleted = false;
-        for (const service of this.allServices) {
-            if (keepCurrentSvc && service === this.defaultService) {
-                continue;
-            }
-            if (await this.keytar.deletePassword(service, account)) {
-                wasDeleted = true;
-            }
-        }
-        if (process.platform === "win32") {
-            // Handle deletion of long values stored across multiple fields
-            let index = 1;
-            while (await this.keytar.deletePassword(this.defaultService, `${account}-${index}`)) {
-                index++;
-            }
-            if (index > 1) {
-                wasDeleted = true;
-            }
-        }
-        return wasDeleted;
+        throw new Error("Keytar not supported");
     }
 
     private getMissingEntryMessage(account: string) {
