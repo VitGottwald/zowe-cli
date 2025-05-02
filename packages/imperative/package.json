@@ -30,19 +30,19 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "build:packages": "tsc --pretty",
-    "build": "npm run build:packages && npm run build:webHelp",
+    "build": "pnpm run build:packages && pnpm run build:webHelp",
     "lint": "eslint \"src/**/*.ts\" \"**/__tests__/**/*.ts\" --ignore-pattern \"**/__mocks__/*.ts\"",
     "lint:packages": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**/*.ts\" --ignore-pattern \"**/__mocks__/*.ts\"",
     "lint:tests": "eslint \"**/__tests__/**/*.ts\"",
     "circularDependencyCheck": "madge -c lib",
-    "watch": "concurrently \"tsc --pretty --watch\" \"npm run watch:webHelp\"",
-    "build:webHelp": "cd web-help && npm run build",
-    "watch:webHelp": "cd web-help && npm run watch",
+    "watch": "concurrently \"tsc --pretty --watch\" \"pnpm run watch:webHelp\"",
+    "build:webHelp": "cd web-help && pnpm run build",
+    "watch:webHelp": "cd web-help && pnpm run watch",
     "typedoc": "typedoc --options ./typedoc.json ./src/",
     "typedocSpecifySrc": "typedoc --options ./typedoc.json",
     "prepack": "node ../../scripts/prepareLicenses.js",
     "clean": "rimraf lib tsconfig.tsbuildinfo",
-    "prepublishOnly": "cd web-help && npm run deps:lockfile"
+    "prepublishOnly": "cd web-help && pnpm run deps:lockfile"
   },
   "dependencies": {
     "@types/yargs": "^17.0.32",
