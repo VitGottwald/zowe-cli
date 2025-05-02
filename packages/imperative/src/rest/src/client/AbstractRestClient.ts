@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /*
 * This program and the accompanying materials are made available under the terms of the
 * Eclipse Public License v2.0 which accompanies this distribution, and is available at
@@ -13,7 +15,6 @@ import { inspect } from "util";
 import { Logger } from "../../../logger";
 import { IImperativeError, ImperativeError } from "../../../error";
 import { AbstractSession } from "../session/AbstractSession";
-import * as https from "https";
 import * as http from "http";
 import { readFileSync } from "fs";
 import { ContentEncoding, Headers as ZoweHeaders } from "./Headers";
@@ -263,30 +264,30 @@ export abstract class AbstractRestClient {
      */
     public async request(options: IRestOptions): Promise<string> {
 
-        console.log(`HTTP Request`)
-        console.log(JSON.stringify(options))
+        console.log(`HTTP Request`);
+        console.log(JSON.stringify(options));
 
         const buildOptions = this.buildOptions(options.resource, options.request, options.reqHeaders);
 
-        console.log(JSON.stringify(buildOptions))
+        console.log(JSON.stringify(buildOptions));
 
         const authentication: string = AbstractSession.BASIC_PREFIX + (this.session.ISession.base64EncodedAuth ??
             AbstractSession.getBase64Auth(this.session.ISession.user, this.session.ISession.password));
 
-        const headers = new Headers()
-        headers.append("x-csrf-zosmf-header", "true")
-        headers.append("Authorization", authentication)
+        const headers = new Headers();
+        headers.append("x-csrf-zosmf-header", "true");
+        headers.append("Authorization", authentication);
 
         if (options.reqHeaders && options.reqHeaders.length > 0) {
             options.reqHeaders.forEach(h => {
-                const keys = Object.keys(h)
+                const keys = Object.keys(h);
                 keys.forEach(k => {
-                    headers.append(k, h[k])
-                })
-            })
+                    headers.append(k, h[k]);
+                });
+            });
         }
 
-        const url = `https://${buildOptions.hostname}:${buildOptions.port}${buildOptions.path}`
+        const url = `https://${buildOptions.hostname}:${buildOptions.port}${buildOptions.path}`;
         const response = await fetch(url,
             {
                 headers,
@@ -294,7 +295,7 @@ export abstract class AbstractRestClient {
             }
         );
 
-        return await response.text()
+        return await response.text();
     }
 
     /**
@@ -327,7 +328,7 @@ export abstract class AbstractRestClient {
      */
     protected processError(error: IImperativeError): IImperativeError {
         // this.log.debug("Default stub for processError was called for rest client %s - processError was not overwritten",
-            // this.constructor.name);
+        // this.constructor.name);
         return undefined; // do nothing by default
     }
 
@@ -445,10 +446,10 @@ export abstract class AbstractRestClient {
         // set transfer flags
         this.setTransferFlags(options.headers);
 
-        const logResource = path.posix.join(path.posix.sep,
-            this.session.ISession.basePath == null ? "" : this.session.ISession.basePath, resource);
+        // const logResource = path.posix.join(path.posix.sep,
+        // this.session.ISession.basePath == null ? "" : this.session.ISession.basePath, resource);
         // this.log.trace("Rest request: %s %s:%s%s %s", request, this.session.ISession.hostname, this.session.ISession.port,
-            // logResource, this.session.ISession.user ? "as user " + this.session.ISession.user : "");
+        // logResource, this.session.ISession.user ? "as user " + this.session.ISession.user : "");
 
         return options;
     }
@@ -833,7 +834,7 @@ export abstract class AbstractRestClient {
      */
     private appendInputHeaders(options: IHTTPSOptions, reqHeaders?: any[]): IHTTPSOptions {
         // this.log.trace("appendInputHeaders called with options on rest client %s",
-            // JSON.stringify(options), this.constructor.name);
+        // JSON.stringify(options), this.constructor.name);
         if (reqHeaders && reqHeaders.length > 0) {
             reqHeaders.forEach((reqHeader: any) => {
                 const requestHeaderKeys: string[] = Object.keys(reqHeader);

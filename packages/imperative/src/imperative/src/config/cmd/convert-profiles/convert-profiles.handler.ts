@@ -11,9 +11,8 @@
 
 import { ICommandHandler, IHandlerParameters, IHandlerResponseConsoleApi } from "../../../../../cmd";
 import {
-    ConvertMsg, ConvertMsgFmt, IConvertV1ProfOpts, IConvertV1ProfResult
+    ConvertMsg, ConvertMsgFmt
 } from "../../../../../config";
-import { uninstall as uninstallPlugin } from "../../../plugins/utilities/npm-interface";
 import { TextUtils } from "../../../../../utilities";
 /**
  * Handler for the convert profiles command.

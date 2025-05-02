@@ -109,15 +109,15 @@ export class ProfileCredentials {
                 // see https://github.com/zowe/imperative/issues/545
                 await CredentialManagerFactory.initialize({
                     service: null,
-                    ...(this.mCredMgrOverride || {}),
+                    ...this.mCredMgrOverride || {},
                 });
             } catch (error) {
                 throw error instanceof ImperativeError
                     ? error
                     : new ImperativeError({
-                          msg: `Failed to load CredentialManager class: ${error.message}`,
-                          causeErrors: error,
-                      });
+                        msg: `Failed to load CredentialManager class: ${error.message}`,
+                        causeErrors: error,
+                    });
             }
         }
     }
@@ -155,8 +155,8 @@ export class ProfileCredentials {
             const value1 = settings?.overrides.CredentialManager;
             const value2 = settings?.overrides["credential-manager"];
             return (
-                (typeof value1 === "string" && value1.length > 0) ||
-                (typeof value2 === "string" && value2.length > 0)
+                typeof value1 === "string" && value1.length > 0 ||
+                typeof value2 === "string" && value2.length > 0
             );
         } catch (error) {
             throw new ImperativeError({

@@ -224,12 +224,12 @@ export class Download {
                 commandResponse:
                     destination != null
                         ? util.format(
-                              ZosFilesMessages.datasetDownloadedWithDestination
-                                  .message,
-                              destination
-                          )
+                            ZosFilesMessages.datasetDownloadedWithDestination
+                                .message,
+                            destination
+                        )
                         : ZosFilesMessages.datasetDownloadedSuccessfully
-                              .message,
+                            .message,
                 apiResponse,
             };
         } catch (error) {
@@ -797,12 +797,12 @@ export class Download {
                 commandResponse:
                     destination != null
                         ? util.format(
-                              ZosFilesMessages.ussFileDownloadedWithDestination
-                                  .message,
-                              destination
-                          )
+                            ZosFilesMessages.ussFileDownloadedWithDestination
+                                .message,
+                            destination
+                        )
                         : ZosFilesMessages.ussFileDownloadedSuccessfully
-                              .message,
+                            .message,
                 apiResponse,
             };
         } catch (error) {
@@ -953,7 +953,7 @@ export class Download {
                     item.name === "." ||
                     item.name === ".." ||
                     item.name === "..." ||
-                    (!fileOptions.includeHidden && /(^|\/)\./.test(item.name))
+                    !fileOptions.includeHidden && /(^|\/)\./.test(item.name)
                 ) {
                     // If the name is ., .., ..., or a hidden file, ignore it.
                     continue;
