@@ -16364,9 +16364,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/imperative": {
@@ -16578,10 +16575,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/secrets": {
@@ -16611,10 +16604,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zosconsole": {
@@ -16628,10 +16617,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zosfiles": {
@@ -16650,10 +16635,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zosfiles/node_modules/brace-expansion": {
@@ -16690,10 +16671,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zoslogs": {
@@ -16707,10 +16684,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zosmf": {
@@ -16724,10 +16697,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zostso": {
@@ -16744,10 +16713,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/core-for-zowe-sdk": "^8.0.0",
-        "@zowe/imperative": "^8.0.0"
       }
     },
     "packages/zosuss": {
@@ -16764,9 +16729,6 @@
       },
       "engines": {
         "node": ">=18.12.0"
-      },
-      "peerDependencies": {
-        "@zowe/imperative": "^8.0.0"
       }
     }
   }
