@@ -6,7 +6,6 @@
   "license": "EPL-2.0",
   "scripts": {
     "build": "pnpm -r build",
-    "postbuild": "node scripts/sampleCliTool.js build",
     "build:exe": "cd zowex && cargo build && cargo clippy && cargo test",
     "clean": "lerna run --parallel clean",
     "clean:exe": "cd zowex && cargo clean",
