@@ -1,0 +1,3 @@
+useNodeVersion: 22.15.0 
+packages:
+  - "packages/*"

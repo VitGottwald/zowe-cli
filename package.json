@@ -4,10 +4,6 @@
   "description": "Zowe CLI is a command line interface (CLI) that provides a simple and streamlined way to interact with IBM z/OS.",
   "author": "Zowe",
   "license": "EPL-2.0",
-  "workspaces": [
-    "packages/*",
-    "__tests__/__packages__/*"
-  ],
   "scripts": {
     "build": "lerna run build && node scripts/updateLicenses.js && npm run lint && npm run checkTestsCompile && npm run circularDependencyCheck",
     "postbuild": "node scripts/sampleCliTool.js build",
@@ -41,11 +37,12 @@
     "package": "lerna run prepublishOnly && node scripts/bundleCliTgz.js"
   },
   "devDependencies": {
-    "@lerna-lite/changed": "^3.6.0",
-    "@lerna-lite/cli": "^3.6.0",
-    "@lerna-lite/list": "^3.6.0",
-    "@lerna-lite/run": "^3.6.0",
-    "@lerna-lite/version": "^3.6.0",
+    "@lerna-lite/changed": "4.1.1",
+    "@lerna-lite/cli": "4.1.1",
+    "@lerna-lite/core": "4.1.1",
+    "@lerna-lite/list": "4.1.1",
+    "@lerna-lite/run": "4.1.1",
+    "@lerna-lite/version": "4.1.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^18.19.17",
     "@types/which": "^3.0.4",
